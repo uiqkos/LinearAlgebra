@@ -17,9 +17,9 @@ Slice::Slice(int begin, int end)
 {}
 
 Slice2d::Slice2d(
-        int beginRow, int endRow,
-        int beginColumn, int endColumn
+        int beginRow, int beginColumn,
+        int endRow, int endColumn
     ) :
-    beginRow(beginRow), endRow(endRow),
-    beginColumn(beginColumn), endColumn(endColumn)
+    beginRow(beginRow), beginColumn(beginColumn),
+    endRow(endRow), endColumn(endColumn)
     {}

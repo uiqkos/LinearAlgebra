@@ -9,7 +9,7 @@ add_library(
     LinearAlgebra SHARED
     src/Matrix/Matrix.cpp src/Matrix/Matrix.h
     src/Matrix/Slice/Slice.cpp src/Matrix/Slice/Slice.h
-)
+        src/Utils/Utils.cpp)
 
 target_include_directories(LinearAlgebra PRIVATE src)
 

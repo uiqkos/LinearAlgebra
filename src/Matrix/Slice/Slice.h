@@ -23,6 +23,6 @@ namespace LinearAlgebra {
         int endColumn;
 
     public:
-        Slice2d(int beginRow, int endRow, int beginColumn, int endColumn);
+        Slice2d(int beginRow, int beginColumn, int endRow, int endColumn);
     };
 }

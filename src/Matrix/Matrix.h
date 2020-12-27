@@ -3,13 +3,11 @@
 #include <vector>
 #include <ostream>
 #include "Matrix/Slice/Slice.h"
+#include "Utils/Utils.cpp"
 
 namespace LinearAlgebra {
     template<typename type = int>
     class Matrix {
-    private:
-        using MatrixType = Matrix<type>;
-
     private: // Private members
         int rowCount;
         int columnCount;
@@ -37,12 +35,12 @@ namespace LinearAlgebra {
         const type& atSingleIndex(int index) const;
 
         std::vector<type> at(Slice slice);
-        MatrixType at(Slice2d slice);
+        Matrix<type> at(Slice2d slice);
 
     public:
         // Constructors
         Matrix(int rowCount, int columnCount);
-        Matrix(const MatrixType& other);
+        Matrix(const Matrix<type>& other);
         Matrix(int rowCount, int columnCount, std::vector<type> other);
 
         // Destructor
@@ -55,8 +53,16 @@ namespace LinearAlgebra {
         const type& operator()(int rowIndex, int columnIndex) const;
         const type& operator()(int index) const;
 
-        MatrixType operator+(const MatrixType& other);
-        MatrixType operator*(const MatrixType& other);
+        Matrix<type> operator+(const Matrix<type>& other);
+        Matrix<type> operator+(const type& constant);
+
+        // TODO: delete this shit
+        Matrix<type> smatrix(const type& constant);
+        Matrix<type> svector(const type& constant);
+
+
+        Matrix<type> operator*(const Matrix<type>& other);
+        Matrix<type> operator*(const type& constant);
 
     };
 }

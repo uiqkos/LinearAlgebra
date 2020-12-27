@@ -4,24 +4,22 @@
 
 using namespace LinearAlgebra;
 
-#define MatrixType Matrix<type>
-
 
 #pragma region --Constructors--
 template<typename type>
-MatrixType::Matrix(int rowCount, int columnCount)
+Matrix<type>::Matrix(int rowCount, int columnCount)
     :
     data(std::vector<type>(rowCount * columnCount)),
     rowCount(rowCount), columnCount(columnCount), capacity(rowCount * columnCount)
     {}
 
 template<typename type>
-MatrixType::Matrix(int rowCount, int columnCount, std::vector<type> data)
+Matrix<type>::Matrix(int rowCount, int columnCount, std::vector<type> data)
     : data(move(data)), rowCount(rowCount), columnCount(columnCount), capacity(data.capacity())
     {}
 
 template<typename type>
-MatrixType::Matrix(const MatrixType& other)
+Matrix<type>::Matrix(const Matrix<type>& other)
         : data(other.data),
         rowCount(other.getRowCount()), columnCount(other.getColumnCount()),
         capacity(other.getCapacity())
@@ -30,72 +28,79 @@ MatrixType::Matrix(const MatrixType& other)
 
 #pragma region --Getters--
 template<typename type>
-int MatrixType::getRowCount() const {
+int Matrix<type>::getRowCount() const {
     return rowCount;
 }
 
 template<typename type>
-int MatrixType::getColumnCount() const {
+int Matrix<type>::getColumnCount() const {
     return columnCount;
 }
 
 template<typename type>
-int MatrixType::getCapacity() const {
+int Matrix<type>::getCapacity() const {
     return capacity;
 }
 #pragma endregion
 
 #pragma region --Methods--
 template<typename type>
-type& MatrixType::at(int rowIndex, int columnIndex) {
-    return data[rowCount * rowIndex + columnIndex];
+type& Matrix<type>::at(int rowIndex, int columnIndex) {
+    return data[columnCount * rowIndex + columnIndex];
 }
 
 template<typename type>
-const type& MatrixType::at(int rowIndex, int columnIndex) const {
-    return data.at(rowCount * rowIndex + columnIndex);
+const type& Matrix<type>::at(int rowIndex, int columnIndex) const {
+    return data.at(columnCount * rowIndex + columnIndex);
 }
 
 template<typename type>
-type& MatrixType::atSingleIndex(int index) {
+type& Matrix<type>::atSingleIndex(int index) {
     return data[index];
 }
 
 template<typename type>
-const type& MatrixType::atSingleIndex(int index) const {
+const type& Matrix<type>::atSingleIndex(int index) const {
     return data.at(index);
 }
 
+template<typename type>
+std::vector<type> Matrix<type>::at(Slice slice) {
+    return std::vector<type>(
+        data.begin() + slice.getBegin(),
+        data.begin() + slice.getBegin() + slice.getEnd()
+    );
+}
 
 template<typename type>
-MatrixType MatrixType::at(Slice2d slice) {
-    int newRowCount = slice.endRow - slice.beginRow;
-    int newColumnCount = slice.endColumn - slice.beginColumn;
+Matrix<type> Matrix<type>::at(Slice2d slice) {
+    int newRowCount = slice.endRow - slice.beginRow + 1;
+    int newColumnCount = slice.endColumn - slice.beginColumn + 1;
 
     std::vector<type> newData(newRowCount * newColumnCount);
-    for (int i = slice.beginRow, newDataIndex = 0; i < slice.endRow; ++i){
-        for (int j = slice.beginColumn; j < slice.endColumn; ++j)
+    for (int i = slice.beginRow, newDataIndex = 0; i <= slice.endRow; ++i){
+        for (int j = slice.beginColumn; j <= slice.endColumn; ++j)
             newData[newDataIndex++] = at(i, j);
     }
     return Matrix<type>(newRowCount, newColumnCount, newData);
 }
 
 template<typename type>
-void MatrixType::print(std::ostream& stream) {
-    for (int i = 0; i < columnCount; ++i) {
-        for (int j = 0; j < rowCount; ++j)
+void Matrix<type>::print(std::ostream& stream) {
+    for (int i = 0; i < rowCount; ++i) {
+        for (int j = 0; j < columnCount; ++j)
             stream << at(i, j) << " ";
         stream << std::endl;
     }
 }
 
 template<typename type>
-void MatrixType::print() {
+void Matrix<type>::print() {
     print(std::cout);
 }
 
 template<typename type>
-void MatrixType::fill(const std::vector<type>& vector) {
+void Matrix<type>::fill(const std::vector<type>& vector) {
     if(vector.capacity() != capacity)
         throw std::invalid_argument("Invalid capacity");
 
@@ -108,39 +113,93 @@ void MatrixType::fill(const std::vector<type>& vector) {
 
 #pragma region --Operators--
 template<typename type>
-type& MatrixType::operator()(int rowIndex, int columnIndex) {
+type& Matrix<type>::operator()(int rowIndex, int columnIndex) {
     return at(rowIndex, columnIndex);
 }
 
 template<typename type>
-const type& MatrixType::operator()(int rowIndex, int columnIndex) const {
+const type& Matrix<type>::operator()(int rowIndex, int columnIndex) const {
     return at(rowIndex, columnIndex);
 }
 
 template<typename type>
-type& MatrixType::operator()(int index) {
+type& Matrix<type>::operator()(int index) {
     return data[index];
 }
 
 template<typename type>
-const type& MatrixType::operator()(int index) const {
+const type& Matrix<type>::operator()(int index) const {
     return data.at(index);
 }
 
 template<typename type>
-MatrixType MatrixType::operator+(const MatrixType& other) {
-    MatrixType result = MatrixType(*this);
-    for(int i = 0; i < result.getCapacity(); i++){
+Matrix<type> Matrix<type>::operator+(const Matrix<type>& other) {
+    Matrix<type> result = Matrix<type>(*this);
+
+    for(int i = 0; i < capacity; i++)
         result(i) += other(i);
+
+    return result;
+}
+
+
+template<typename type>
+Matrix<type> Matrix<type>::operator+(const type& constant) {
+    std::vector<type> resultVector = std::vector<type>(data);
+    for (int i = 0; i < capacity; ++i)
+        resultVector[i] += constant;
+
+    return Matrix<type>(rowCount, columnCount, resultVector);
+}
+
+template<typename type>
+Matrix<type> Matrix<type>::operator*(const Matrix<type>& other) {
+    Matrix<type> result = Matrix<type>(rowCount, other.getColumnCount());
+
+    for (int otherColumnIndex = 0; otherColumnIndex < other.getColumnCount(); ++otherColumnIndex) {
+        for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
+            for (int otherRowIndex = 0; otherRowIndex < other.getRowCount(); ++otherRowIndex) {
+                result(rowIndex, otherColumnIndex) +=
+                    at(rowIndex, otherRowIndex) * other.at(otherRowIndex, otherColumnIndex);
+            }
+        }
     }
+
     return result;
 }
 
 template<typename type>
-MatrixType MatrixType::operator*(const MatrixType& other) {
-    Matrix<type> result
-        = Matrix<type>();
-    return result;
+Matrix<type> Matrix<type>::operator*(const type& constant) {
+    std::vector<type> resultVector = std::vector<type>(data);
+
+    for (int i = 0; i < capacity; ++i)
+        resultVector[i] *= constant;
+
+    return Matrix<type>(rowCount, columnCount, resultVector);
 }
+
+template<typename type>
+Matrix<type> Matrix<type>::smatrix(const type& constant) {
+    Matrix<type> result = Matrix<type>(*this);
+
+    for (int i = 0; i < rowCount; ++i) {
+        for (int j = 0; j < columnCount; ++j) {
+            result(i, j) += constant;
+        }
+    }
+    return result;
+
+}
+
+template<typename type>
+Matrix<type> Matrix<type>::svector(const type& constant) {
+    // Эффективно но не понятно
+    std::vector<type> resultVector = std::vector<type>(data);
+    for (int i = 0; i < capacity; ++i)
+        resultVector[i] += constant;
+
+    return Matrix<type>(rowCount, columnCount, resultVector);
+}
+
 
 #pragma endregion
