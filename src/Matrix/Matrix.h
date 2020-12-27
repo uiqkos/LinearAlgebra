@@ -1,11 +1,14 @@
+#pragma once
+
 #include <vector>
 #include <ostream>
+#include "Matrix/Slice/Slice.h"
 
 namespace LinearAlgebra {
-    template<int rows, int columns, typename type = int>
+    template<typename type = int>
     class Matrix {
     private:
-        using MatrixType = Matrix<rows, columns, type>;
+        using MatrixType = Matrix<type>;
 
     private: // Private members
         int rowCount;
@@ -22,7 +25,7 @@ namespace LinearAlgebra {
 
     public: // Public methods
         void fill(const std::vector<type>& vector);
-        void fill(const Matrix<rows, columns, type>& other);
+        void fill(const Matrix<type>& other);
 
         void print(std::ostream& stream);
         void print();
@@ -33,11 +36,14 @@ namespace LinearAlgebra {
         type& atSingleIndex(int index);
         const type& atSingleIndex(int index) const;
 
+        std::vector<type> at(Slice slice);
+        MatrixType at(Slice2d slice);
+
     public:
         // Constructors
-        Matrix();
+        Matrix(int rowCount, int columnCount);
         Matrix(const MatrixType& other);
-        Matrix(std::vector<type> other);
+        Matrix(int rowCount, int columnCount, std::vector<type> other);
 
         // Destructor
         ~Matrix() = default;
@@ -50,10 +56,7 @@ namespace LinearAlgebra {
         const type& operator()(int index) const;
 
         MatrixType operator+(const MatrixType& other);
-
-    };
-
-    class Vector {
+        MatrixType operator*(const MatrixType& other);
 
     };
 }
