@@ -4,6 +4,14 @@
 #include <algorithm>
 
 namespace Utils {
+
+    inline bool inRange(int left, int right, int value) {
+        if (left < right)
+            return left <= value and value <= right;
+
+        return right <= value and value <= left;
+    }
+
     template<typename type>
     type multiply(const std::vector<type>& first, const std::vector<type>& second) {
         if (first.size() != second.size())

@@ -5,19 +5,31 @@
 #include <chrono>
 
 #include "Matrix/Matrix.h"
-#include "Utils/Utils.cpp"
+//#include "Utils/Utils.cpp"
 
 using namespace LinearAlgebra;
 using namespace Utils;
 using namespace std::chrono;
 using namespace std;
 
-
 int main(){
-    Matrix matrix1 = Matrix(3, 3, vector<int>{2, 3, -5, 6, 9, -7, 9, 4, 5});
+    Matrix matrix1 = Matrix(1, 9, vector<int>{2, 3, -5, 6, 9, -7, 9, 4, 5});
+
     matrix1.print();
-//    matrix1.slice(0, 1, 1, 2).print();
-    (~matrix1).print();
+    cout << endl << matrix1(0, -1);
+//
+//    matrix1.slice(0, 0, 1, 1).print(); // from (0, 0) to (1, 1)
+//    matrix1.slice(0, 0, 2, 0).print(); // first column
+//    matrix1.slice(2, -1, 2, 0).print(); // last row reversed
+//    matrix1.slice(-1, -1, 0, 0).print(); // reversed matrix
+
+
+//    matrix1.print();
+//    matrix1.transpose();
+//    matrix1.print();
+//    (~matrix1).print();
+
+//    cout << ;
 
 
 //    Matrix<int> matrix2 = Matrix<int>(3, 2, {1, -2, 0, 3, 4, -5});
