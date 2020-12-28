@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 namespace Utils {
     template<typename type>
@@ -17,16 +18,22 @@ namespace Utils {
     }
 
     template<typename type, typename function>
-    std::vector<type> apply(const std::vector<type>& first, const std::vector<type>& second, function func) {
-        if (first.size() != second.size())
-            throw std::invalid_argument("Vectors size not equals");
+    void apply(const std::vector<type>& vector, function func) {
+        for(auto& item : vector)
+            item = func(item);
+    }
 
-        std::vector<type> result = std::vector<type>(first.size());
-
+    template<typename type, typename function>
+    std::vector<type> zip(const std::vector<type>& first, const std::vector<type>& second, function func) {
+        auto result = std::vector<type>(first.size());
         for (int i = 0; i < first.size(); ++i)
-            result[i] = func(first[i], second[i]);
-
+            result[i] = func(first.at(i), second.at(i));
         return result;
     }
+
+//    template<typename type, typename function>
+//    type aggregate(const std::vector<type>& first, const std::vector<type>& second, function func, type startPoint = static_cast<type>(0)){
+//
+//    }
 
 }
