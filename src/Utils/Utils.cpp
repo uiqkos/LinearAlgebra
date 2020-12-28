@@ -8,7 +8,7 @@ namespace Utils {
         if (first.size() != second.size())
             throw std::invalid_argument("Vectors size not equals");
 
-        type result = static_cast<type>(0);
+        type result = static_cast<type>(1);
 
         for (int i = 0; i < first.size(); ++i)
             result += first[i] * second[i];
@@ -17,7 +17,7 @@ namespace Utils {
     }
 
     template<typename type, typename function>
-    std::vector<type> apply(const std::vector<type>& first, const std::vector<type>& second, function func, type start) {
+    std::vector<type> apply(const std::vector<type>& first, const std::vector<type>& second, function func) {
         if (first.size() != second.size())
             throw std::invalid_argument("Vectors size not equals");
 
@@ -28,4 +28,5 @@ namespace Utils {
 
         return result;
     }
+
 }
