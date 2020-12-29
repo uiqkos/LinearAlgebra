@@ -1,9 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <string>
+//#include <format>
 #include <ostream>
 #include <iostream>
 #include <algorithm>
+
+#include "Slice/Slice.h"
 #include "Utils/Utils.cpp"
 
 
@@ -15,6 +19,28 @@ namespace LinearAlgebra {
         int columnCount;
         int capacity;
         std::vector<T> data;
+
+    public: // Getters
+        int GetRowCount() const {
+            return rowCount;
+        }
+        int GetColumnCount() const {
+            return columnCount;
+        }
+        int GetCapacity() const {
+            return capacity;
+        }
+        std::pair<int, int> Shape() {
+            return std::make_pair(rowCount, columnCount);
+        }
+
+    private:
+        bool InRange(int left, int right, int value) {
+            if (left < right)
+                return left <= value and value <= right;
+
+            return right <= value and value <= left;
+        }
 
     public:
         #pragma region --Constructors--
@@ -35,52 +61,52 @@ namespace LinearAlgebra {
         {}
         #pragma endregion
 
-        int getRowCount() const {
-            return rowCount;
-        }
-        int getColumnCount() const {
-            return columnCount;
-        }
-        int getCapacity() const {
-            return capacity;
-        }
+        /////////////// Element access ///////////////
 
-        bool canTranspose() {
-            return rowCount == columnCount;
-        }
-
-        void transpose() {
-            if(rowCount != columnCount)
-                throw std::invalid_argument("Count of rows != count of columns");
-
-            for (int i = 0; i < rowCount; i++)
-                for (int j = i; j < columnCount; ++j)
-                    std::swap(at(i, j), at(j, i));
-        }
-
-        T& at(int rowIndex, int columnIndex) {
+        T& At(int rowIndex, int columnIndex) {
             if (rowIndex < 0) rowIndex += rowCount;
             if (columnIndex < 0) columnIndex += columnCount;
 
             return data[columnCount * rowIndex + columnIndex];
         }
-        const T& at(int rowIndex, int columnIndex) const {
+        const T& At(int rowIndex, int columnIndex) const {
             if (rowIndex < 0) rowIndex += rowCount;
             if (columnIndex < 0) columnIndex += columnCount;
 
-            return data.at(columnCount * rowIndex + columnIndex);
+            return data.At(columnCount * rowIndex + columnIndex);
         }
 
-        T& atSingleIndex(int index) {
+        T& At(Index index) {
+            return At(index.row, index.column);
+        }
+        const T& At(Index index) const {
+            return At(index.row, index.column);
+        }
+
+        T& AtSingleIndex(int index) {
             if(index < 0) index += capacity;
             return data[index];
         }
-        const T& atSingleIndex(int index) const {
+        const T& AtSingleIndex(int index) const {
             if(index < 0) index += capacity;
-            return data.at(index);
+            return data.At(index);
         }
 
-        Matrix<T> slice(int beginRow, int beginColumn, int endRow, int endColumn) {
+        T& operator()(int rowIndex, int columnIndex) {
+            return At(rowIndex, columnIndex);
+        }
+        const T& operator()(int rowIndex, int columnIndex) const {
+            return At(rowIndex, columnIndex);
+        }
+
+        T& operator[](Index index) {
+            return At(index);
+        }
+        Matrix<T> operator[](Slice slice) {
+            return MakeSlice(slice);
+        }
+
+        Matrix<T> MakeSlice(int beginRow, int beginColumn, int endRow, int endColumn) {
 
             // Check for negative
             if (beginRow < 0)     beginRow    += rowCount;
@@ -98,25 +124,79 @@ namespace LinearAlgebra {
 
             std::vector<T> newData(newRowCount * newColumnCount);
             int newDataIndex = 0;
-            for (int row = beginRow; Utils::inRange(beginRow, endRow, row); row += rowShift)
-                for (int column = beginColumn; Utils::inRange(beginColumn, endColumn, column); column += columnShift)
-                    newData[newDataIndex++] = at(row, column);
+            for (int row = beginRow; InRange(beginRow, endRow, row); row += rowShift)
+                for (int column = beginColumn; InRange(beginColumn, endColumn, column); column += columnShift)
+                    newData[newDataIndex++] = At(row, column);
 
             return Matrix<T>(newRowCount, newColumnCount, newData);
         }
+        Matrix<T> MakeSlice(Index begin, Index end) {
+            return MakeSlice(begin.row, begin.column, end.row, end.column);
+        }
+        Matrix<T> MakeSlice(Slice slice) {
+            return MakeSlice(slice.begin, slice.end);
+        }
 
-        void print(std::ostream& stream) {
+        /////////////// Transpose ///////////////
+        bool CanTranspose() {
+            return rowCount == columnCount;
+        }
+        void Transpose() {
+            if(rowCount != columnCount)
+                throw std::invalid_argument("Count of rows != count of columns");
+
+            for (int i = 0; i < rowCount; i++)
+                for (int j = i; j < columnCount; ++j)
+                    std::swap(At(i, j), At(j, i));
+        }
+        friend Matrix<T> Transpose(Matrix<T> matrix) {
+
+            // TODO: without this->operator(i, j)
+            if(!matrix.CanTranspose())
+                throw std::invalid_argument("Count of rows != count of columns");
+
+            auto result = Matrix<T>(matrix);
+            for (int i = 0; i < matrix.rowCount; ++i)
+                for(int j = 0; j < matrix.columnCount; ++j)
+                    result(j, i) = matrix.At(i, j);
+
+            return result;
+        }
+
+        Matrix<T> operator~() {
+            return Transpose(*this);
+        }
+
+        void Reshape(int newRowCount, int newColumnCount) {
+            if (newRowCount * newColumnCount != capacity)
+                throw std::invalid_argument("Invalid operation");
+
+            rowCount = newRowCount;
+            columnCount = newColumnCount;
+        }
+        void Reshape(std::pair<int, int> shape) {
+            Reshape(shape.first, shape.second);
+        }
+
+        /////////////// Print ///////////////
+        void Print(std::ostream& stream) {
             for (int i = 0; i < rowCount; ++i) {
                 for (int j = 0; j < columnCount; ++j)
-                    stream << at(i, j) << " ";
+                    stream << At(i, j) << " ";
                 stream << std::endl;
             }
         }
-        void print() {
-            print(std::cout);
+        void Print() {
+            Print(std::cout);
         }
 
-        void fill(const std::vector<T>& vector) {
+        friend std::ostream& operator<<(std::ostream& stream, Matrix<T> matrix) {
+            matrix.Print(stream);
+            return stream;
+        }
+
+        /////////////// Fill ///////////////
+        void Fill(const std::vector<T>& vector) {
             if(vector.capacity() != capacity)
                 throw std::invalid_argument("Invalid capacity");
 
@@ -127,26 +207,7 @@ namespace LinearAlgebra {
         }
 
         #pragma region --Operators--
-
-        T& operator()(int rowIndex, int columnIndex) {
-            return at(rowIndex, columnIndex);
-        }
-        const T& operator()(int rowIndex, int columnIndex) const {
-            return at(rowIndex, columnIndex);
-        }
-
-        T& operator()(int index) {
-            return data[index];
-        }
-        const T& operator()(int index) const {
-            return data.at(index);
-        }
-
-        friend std::ostream& operator<<(std::ostream& stream, Matrix<T> matrix) {
-            matrix.print(stream);
-            return stream;
-        }
-
+        /////////////// Bool operators ///////////////
         friend bool operator==(Matrix<T> first, Matrix<T> second) {
             return
                 first.data == second.data and
@@ -157,26 +218,27 @@ namespace LinearAlgebra {
             return !(first == second);
         }
 
+        /////////////// Arithmetic ///////////////
         Matrix<T> operator+(const Matrix<T>& other) {
             return Matrix<T>(
-                    rowCount, columnCount,
-                    Utils::zip(data, other.data, [](const T& l, const T& r){return l + r;})
+                rowCount, columnCount,
+                Utils::Zip(data, other.data, [](const T& l, const T& r){return l + r;})
             );
         }
         Matrix<T> operator+(const T& constant) {
             auto result = std::vector<T>(data);
-            Utils::apply(result, [constant](const T& item){return item + constant;});
+            Utils::Apply(result, [constant](const T& item){return item + constant;});
 
             return Matrix<T>(
-                    rowCount, columnCount,
-                    result
+                rowCount, columnCount,
+                result
             );
         }
 
         Matrix<T> operator-(const Matrix<T>& other) {
             return Matrix<T>(
                     rowCount, columnCount,
-                    Utils::zip(data, other.data, [](const T& l, const T& r){return l - r;})
+                    Utils::Zip(data, other.data, [](const T& l, const T& r){return l - r;})
             );
         }
         Matrix<T> operator-(const T& constant) {
@@ -191,7 +253,7 @@ namespace LinearAlgebra {
                 for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
                     for (int otherRowIndex = 0; otherRowIndex < other.getRowCount(); ++otherRowIndex) {
                         result(rowIndex, otherColumnIndex) +=
-                                at(rowIndex, otherRowIndex) * other.at(otherRowIndex, otherColumnIndex);
+                                At(rowIndex, otherRowIndex) * other.At(otherRowIndex, otherColumnIndex);
                     }
                 }
             }
@@ -200,49 +262,27 @@ namespace LinearAlgebra {
         }
         Matrix<T> operator*(const T& constant) {
             auto result = std::vector<T>(data);
-            Utils::apply(result, [constant](const T& item){return item * constant;});
+            Utils::Apply(result, [constant](const T& item){return item * constant;});
 
             return Matrix<T>(
-                    rowCount, columnCount,
-                    result
+                rowCount, columnCount,
+                result
             );
         }
 
-        Matrix<T> operator/(const T& constant) {
-            auto result = std::vector<T>(data);
-            Utils::apply(result, [constant](const T& item){return item / constant;});
-
-            return Matrix<T>(
-                    rowCount, columnCount,
-                    result
-            );
-        }
         Matrix<T> operator/(const Matrix<T>& other); // TODO: ??
-
 
         Matrix<T> operator-() {
             auto result = std::vector<T>(data);
-            Utils::apply(result, [](const T& item){return -item;});
+            Utils::Apply(result, [](const T& item){return -item;});
 
             return Matrix<T>(
-                    rowCount, columnCount,
-                    result
+                rowCount, columnCount,
+                result
             );
         }
-        Matrix<T> operator~() { // Transpose
 
-            // TODO: without this->operator(i, j)
-            if(rowCount != columnCount)
-                throw std::invalid_argument("Count of rows != count of columns");
-
-            auto result = Matrix<T>(*this);
-            for (int i = 0; i < rowCount; ++i)
-                for(int j = 0; j < columnCount; ++j)
-                    result(j, i) = at(i, j);
-
-            return result;
-        }
-
+        /////////////// Assigment operators ///////////////
         Matrix<T>& operator+=(const Matrix<T>& other) {
             for (int i = 0; i < capacity; ++i)
                 data[i] += other.data[i];
@@ -256,11 +296,6 @@ namespace LinearAlgebra {
         Matrix<T>& operator*=(const Matrix<T>& other) {
             for (int i = 0; i < capacity; ++i)
                 data[i] *= other.data[i];
-            return *this;
-        }
-        Matrix<T>& operator/=(const Matrix<T>& other) {
-            for (int i = 0; i < capacity; ++i)
-                data[i] /= other.data[i];
             return *this;
         }
 
