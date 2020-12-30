@@ -13,13 +13,30 @@ using namespace std::chrono;
 using namespace std;
 
 int main(){
-    Matrix matrix1 = Matrix(3, 3, vector<int>{2, 3, -5, 6, 9, -7, 9, 4, 5});
-    Matrix matrix2 = Matrix(1, 3, vector<int>{-5, -7, 9});
+    Matrix matrix1 = Matrix(3, 3, vector<int>{2, 0, 1, 0, -1, -2, 3, 1, -2});
+//    Matrix matrix2 = Matrix(3, 2, vector<int>{-5, -7, 9, 6, -9, -9});
+//    Matrix matrix3 = Matrix(3, 0);
 
-    cout << matrix1[{1, 2}] << endl;
-    matrix1.MakeSlice({1, 2}, {2, 2}).Print();
+//    cout << Determinant(matrix1);
 
 
+//    ConcatHorizontal(matrix2, matrix3).Print();
+//
+//    matrix1.MakeSlice({0, 3}, {-1, 3}).Print();
+
+//    cout << matrix1[{1, 2}] << endl;
+//    matrix1.MakeSlice(-1, -1, -1, 0).Print();
+//    matrix1.Print();
+//    matrix1.MakeSlice(1, 0, -1, -2).Print();
+//    ConcatHorizontal(matrix1, matrix2);
+//    ConcatHorizontal(matrix1, matrix2).Print();
+//    ConcatVertical(matrix1, matrix3).Print();
+//    matrix1.AddRow({1, 2, 3});
+//
+//    matrix1.Print();
+//
+//    auto vec = matrix1.GetRow(2);
+//    auto vec2 = matrix1.GetRow(0);
 
 //    matrix1.print();
 //    matrix1.addRow(matrix2);
@@ -32,7 +49,8 @@ int main(){
 //    matrix1.slice(0, 0, 1, 1).print(); // from (0, 0) to (1, 1)
 //    matrix1.slice(0, 0, 2, 0).print(); // first column
 //    matrix1.slice(2, -1, 2, 0).print(); // last row reversed
-//    matrix1.slice(-1, -1, 0, 0).print(); // reversed matrix
+    matrix1.Print();
+    matrix1.MakeSlice(-1, -1, 1, 1).Print(); // reversed matrix
 
 
 //    matrix1.print();
