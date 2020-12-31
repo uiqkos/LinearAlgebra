@@ -11,7 +11,7 @@ matrix1.Print();
 0 4 5  
 1 0 6  
 ```
-####Transpose
+#### Transpose
 ```cpp    
 Matrix matrix1 = Matrix(3, 3, vector<int>{1, 2, 3, 0, 4, 5, 1, 0, 6});
 Transpose(matrix1).Print();
@@ -65,7 +65,7 @@ matrix1.MakeSlice(-1, -1, 0, 0).Print(); // reversed matrix
 #### Determinant
 #### Concatenate
 #### Fractions
-##TODOs
+## TODOs
 1. Add norm readme
 2. Optimize Multiply
 3. Finish Inverse
