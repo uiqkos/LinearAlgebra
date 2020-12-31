@@ -6,6 +6,7 @@
 
 #include "Matrix/Matrix.h"
 //#include "Utils/Utils.cpp"
+#include "Fraction/Fraction.h"
 
 using namespace LinearAlgebra;
 using namespace Utils;
@@ -13,8 +14,20 @@ using namespace std::chrono;
 using namespace std;
 
 int main(){
-    Matrix matrix1 = Matrix(3, 3, vector<int>{2, 0, 1, 0, -1, -2, 3, 1, -2});
+
+//    Matrix<double> matrix2 = Matrix(matrix);
+//    Matrix<Fraction<int>> matrix = Matrix(2, 2, vector<Fraction<int>>{{1, 2}, {1, 3}, {2, 6}, {1, 1}});
+//    matrix2.Print();
+
+    Matrix matrix1 = Matrix(3, 3, vector<int>{1, 2, 3, 0, 4, 5, 1, 0, 6});
+//    matrix1.Print();
+//    cout << "Det = " << matrix1.Det() << endl;
+//    Transpose(matrix1).Print();
+//    Inverse(matrix1).Print();
+
 //    Matrix matrix2 = Matrix(3, 2, vector<int>{-5, -7, 9, 6, -9, -9});
+//    (matrix1 * matrix2).Print();
+//    Multiply(matrix1, matrix2).Print();
 //    Matrix matrix3 = Matrix(3, 0);
 
 //    cout << Determinant(matrix1);
@@ -46,11 +59,10 @@ int main(){
 //    matrix1.print();
 //    cout << endl << matrix1(0, -1);
 //
-//    matrix1.slice(0, 0, 1, 1).print(); // from (0, 0) to (1, 1)
-//    matrix1.slice(0, 0, 2, 0).print(); // first column
-//    matrix1.slice(2, -1, 2, 0).print(); // last row reversed
-    matrix1.Print();
-    matrix1.MakeSlice(-1, -1, 1, 1).Print(); // reversed matrix
+    matrix1.MakeSlice(0, 0, 1, 1).Print(); // from (0, 0) to (1, 1)
+    matrix1.MakeSlice(0, 0, -1, 0).Print(); // first column
+    matrix1.MakeSlice(-1, -1, -1, 0).Print(); // last row reversed
+    matrix1.MakeSlice(-1, -1, 0, 0).Print(); // reversed matrix
 
 
 //    matrix1.print();

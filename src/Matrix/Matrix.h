@@ -11,7 +11,7 @@
 
 #include "Slice/Slice.h"
 #include "Utils/Utils.cpp"
-
+#include "Fraction/Fraction.h"
 
 namespace LinearAlgebra {
     template<typename T = int>
@@ -99,6 +99,9 @@ namespace LinearAlgebra {
         static bool _check_square2x2(const Matrix<T>& matrix) {
             return matrix.rowCount == 2 and matrix.columnCount == 2;
         }
+        static bool _check_zero(T value) {
+            return value == static_cast<T>(0);
+        }
 
     public:
         #pragma region --Constructors--
@@ -119,6 +122,31 @@ namespace LinearAlgebra {
                   rowCount(other.GetRowCount()), columnCount(other.GetColumnCount()),
                   capacity(other.GetCapacity())
         {}
+
+        template<typename TOther>
+        Matrix(const Matrix<TOther>& other) {
+            this->rowCount = other.GetRowCount();
+            this->columnCount = other.GetColumnCount();
+            this->capacity = other.GetCapacity();
+
+            auto newData = std::vector<T>(other.GetCapacity());
+            for (int i = 0; i < other.GetCapacity(); ++i)
+                newData[i] = static_cast<T>(other.AtSingleIndex(i));
+
+            this->data = newData;
+        }
+        template<typename TOther>
+        Matrix(const Matrix<TOther>& other, T (*caster)(TOther)) {
+            this->rowCount = other.GetRowCount();
+            this->columnCount = other.GetColumnCount();
+            this->capacity = other.GetCapacity();
+
+            auto newData = std::vector<T>(other.GetCapacity());
+            for (int i = 0; i < other.GetCapacity(); ++i)
+                newData[i] = caster(other.AtSingleIndex(i));
+
+            this->data = newData;
+        }
         #pragma endregion
 
         #pragma region --Methods--
@@ -150,7 +178,7 @@ namespace LinearAlgebra {
         }
         const T& AtSingleIndex(int index) const {
             if(index < 0) index += capacity;
-            return data.At(index);
+            return data.at(index);
         }
 
         T& operator()(int rowIndex, int columnIndex) {
@@ -312,16 +340,29 @@ namespace LinearAlgebra {
 
         /*/////////////// Inverse ///////////////*/
 
-        // TODO: inverse matrix with fractions
+        friend Matrix<Fraction<T>> Inverse(const Matrix<T>& matrix) {
+            // TODO: finish it
+            auto determinant = Determinant(matrix);
+
+            if (_check_zero(determinant))
+                throw std::invalid_argument("Determinant is 0");
+
+            auto result = Matrix<Fraction<T>>(matrix, Fraction<T>::Create);
+            result.Transpose();
+            result *= Fraction<T>(static_cast<T>(1), determinant);
+            return result;
+        }
 
         /*/////////////// Multiplication ///////////////*/
 
-        Matrix<T> Multiply(Matrix<T> left, Matrix<T> right) {
-            Matrix<T> result = Matrix<T>(left.rowCount, right.getColumnCount());
+        friend Matrix<T> Multiply(const Matrix<T>& left, const Matrix<T>& right) {
+            // TODO: replace Matrix with std::vector
+            // TODO: add template parameter TDiv and static_cast to TDiv
+            Matrix<T> result = Matrix<T>(left.GetRowCount(), right.GetColumnCount());
 
-            for (int rightColumnIndex = 0; rightColumnIndex < right.getColumnCount(); ++rightColumnIndex) {
+            for (int rightColumnIndex = 0; rightColumnIndex < right.GetColumnCount(); ++rightColumnIndex) {
                 for (int leftRowIndex = 0; leftRowIndex < left.rowCount; ++leftRowIndex) {
-                    for (int rightRowIndex = 0; rightRowIndex < right.getRowCount(); ++rightRowIndex) {
+                    for (int rightRowIndex = 0; rightRowIndex < right.GetRowCount(); ++rightRowIndex) {
                         result(leftRowIndex, rightColumnIndex) +=
                                 left(leftRowIndex, rightRowIndex) * right(rightRowIndex, rightColumnIndex);
                     }
@@ -332,24 +373,16 @@ namespace LinearAlgebra {
         }
 
         Matrix<T> operator*(const Matrix<T>& other) {
-            // TODO: replace Matrix with std::vector
             return Multiply(*this, other);
         }
 
         /*/////////////// Transpose ///////////////*/
 
-        bool CanTranspose() {
+        bool CanTranspose() const {
             return rowCount == columnCount;
         }
-        void Transpose() {
-            if(rowCount != columnCount)
-                throw std::invalid_argument("Count of rows != count of columns");
 
-            for (int i = 0; i < rowCount; i++)
-                for (int j = i; j < columnCount; ++j)
-                    std::swap(At(i, j), At(j, i));
-        }
-        friend Matrix<T> Transpose(Matrix<T> matrix) {
+        friend Matrix<T> Transpose(const Matrix<T>& matrix) {
 
             // TODO: without this->operator(i, j)
             if(!matrix.CanTranspose())
@@ -362,6 +395,16 @@ namespace LinearAlgebra {
 
             return result;
         }
+
+        void Transpose() {
+            if(rowCount != columnCount)
+                throw std::invalid_argument("Count of rows != count of columns");
+
+            for (int i = 0; i < rowCount; i++)
+                for (int j = i; j < columnCount; ++j)
+                    std::swap(At(i, j), At(j, i));
+        }
+
 
         Matrix<T> operator~() {
             return Transpose(*this);

@@ -9,7 +9,7 @@ add_library(
     LinearAlgebra SHARED
     src/Matrix/Matrix.h
     src/Utils/Utils.cpp
-    src/Index/Index.cpp src/Index/Index.h src/Slice/Slice.cpp src/Slice/Slice.h)
+    src/Index/Index.cpp src/Index/Index.h src/Slice/Slice.cpp src/Slice/Slice.h src/Fraction/Fraction.cpp src/Fraction/Fraction.h)
 
 target_include_directories(LinearAlgebra PRIVATE src)
 
@@ -22,6 +22,6 @@ add_executable(
         src/Utils/Utils.cpp
         src/Index/Index.cpp src/Index/Index.h
         src/Slice/Slice.cpp src/Slice/Slice.h
-)
+        src/Fraction/Fraction.cpp src/Fraction/Fraction.h)
 
 target_link_libraries(LinearAlgebra_test LinearAlgebra)
